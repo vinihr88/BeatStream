@@ -124,18 +124,6 @@
 
         <!-- Conteúdo principal -->
         <div class="main">
-            <!-- Sistema de API de Músicas -->
-<div id="loading" style="display: none; text-align: center; padding: 20px; color: #1DB954;">
-    <div style="border: 4px solid #333; border-left: 4px solid #1DB954; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-    <p>🎵 Buscando músicas...</p>
-</div>
-
-<div id="searchResultsSection" style="display: none;">
-    <!-- Resultados da API aparecerão aqui -->
-</div>
-
-<div id="mainContent">
-    <!-- SEU CONTEÚDO ATUAL CONTINUA AQUI DENTRO -->
             <!-- Playlists do usuário -->
             <div>
                 <h3 class="section-title">Minhas Playlists</h3>
@@ -159,168 +147,1083 @@
                         <h4>Piloto da Nasa</h4>
                         <button class="play-btn">▶</button>
                     </div>
+                    <div class="card" data-song="Artista Genérico" data-artist="Artista 3">
+                        <img src="https://m.media-amazon.com/images/I/41B1VbY-TwL._UXNaN_FMjpg_QL85_.jpg"
+                            alt="Artista Genérico">
+                        <h4>Artista Genérico</h4>
+                        <button class="play-btn">▶</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Artistas populares -->
+            <div>
+                <h3 class="section-title">Artistas populares</h3>
+                <div class="artists">
+                    <div class="artist-card">
+                        <img src="https://pbs.twimg.com/profile_images/1813452990302375936/li3KGu_F_400x400.jpg"
+                            alt="Boaventura">
+                        <h4>Boaventura</h4>
+                        <button class="follow-btn">Seguir</button>
+                    </div>
+                    <div class="artist-card">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvnNC5nB1Bs-1mEKNcE9SAJKmbi9CJvGbd1UrSvCpNtzMpfHiPbBPilxOWHmDFfrEMRkAwjWc8mB6FaH4_EG_YNVS9h2fPYA-mXktaYoQg"
+                            alt="Veigh">
+                        <h4>Veigh</h4>
+                        <button class="follow-btn">Seguir</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        
-// ===== CONFIGURAÇÃO DO RAPIDAPI =====
-const RAPID_API_KEY = "f413ecdd94msh79bffab8fb1253cp1e669ajs2533082c3a2f";
-const RAPID_API_HOST = "musicapi13.p.rapidapi.com";
+        // ===== SISTEMA DE PLAYER DE MÚSICA COM SOUNDCLOUD =====
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        let currentPlaylist = [];
+        let soundcloudWidget = null;
 
-// Player
-let currentSongIndex = 0;
-let isPlaying = false;
-let currentPlaylist = [];
-let currentAudio = null;
+        // Elementos do player
+        const audioPlayer = document.getElementById('audioPlayer');
+        const musicPlayer = document.getElementById('musicPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const songProgress = document.getElementById('songProgress');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const totalTimeDisplay = document.getElementById('totalTime');
+        const playerSongTitle = document.getElementById('playerSongTitle');
+        const playerArtist = document.getElementById('playerArtist');
+        const playerAlbumCover = document.getElementById('playerAlbumCover');
 
-const playPauseBtn = document.getElementById('playPauseBtn');
-const songProgress = document.getElementById('songProgress');
-const currentTimeDisplay = document.getElementById('currentTime');
-const totalTimeDisplay = document.getElementById('totalTime');
-const playerSongTitle = document.getElementById('playerSongTitle');
-const playerArtist = document.getElementById('playerArtist');
-const playerAlbumCover = document.getElementById('playerAlbumCover');
-const audioPlayer = document.getElementById('audioPlayer');
+        // Músicas com SoundCloud - TODAS COM LINKS REAIS
+        const sampleSongs = [
+            {
+                title: "Entrelinhas",
+                artist: "Boaventura",
+                cover: "https://i.scdn.co/image/ab67616d0000b273f0700f96146e437349a6ea20",
+                audio: "https://on.soundcloud.com/0McdDgMJEzPxQf0Hkq",
+                soundcloudUrl: "https://soundcloud.com/dvdesg/boaventura-entrelinhas"
+            },
+            {
+                title: "Piloto da Nasa",
+                artist: "Mc Kevin, Vulgo FK, Gaab",
+                cover: "https://i.scdn.co/image/ab67616d00001e0220e020e6c6412855bc46b45c",
+                audio: "https://soundcloud.com/almirantedamassa/gaab-part-vulgo-fk-mc-kevin-piloto-da-nasa?si=1bceb6043a8346c096e1e6de31658c14&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                soundcloudUrl: "https://soundcloud.com/almirantedamassa/gaab-part-vulgo-fk-mc-kevin-piloto-da-nasa?si=1bceb6043a8346c096e1e6de31658c14&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"
+            },
+            {
+                title: "Artista Genérico",
+                artist: "Veigh",
+                cover: "https://m.media-amazon.com/images/I/41B1VbY-TwL._UXNaN_FMjpg_QL85_.jpg",
+                audio: "https://soundcloud.com/gabrieumcpe/artista-generico-og-version?si=1fe294f68a9f47928d29cbdd8e149743&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+                soundcloudUrl: "https://soundcloud.com/gabrieumcpe/artista-generico-og-version?si=1fe294f68a9f47928d29cbdd8e149743&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"
+            }
+        ];
 
-// Função principal de pesquisa usando RapidAPI
-async function performSearch() {
-    const query = document.getElementById('searchInput').value.trim();
-    
-    if (!query) {
-        alert('Digite o nome de uma música para pesquisar!');
-        return;
-    }
+        // ===== FUNÇÕES DO PLAYER SOUNDCLOUD =====
+        function playSong(songIndex, playlist = sampleSongs) {
+            currentPlaylist = playlist;
+            currentSongIndex = songIndex;
+            const song = currentPlaylist[currentSongIndex];
 
-    document.getElementById('mainContent').style.display = 'none';
-    document.getElementById('loading').style.display = 'block';
-    
-    try {
-        const results = await searchMusicAPI(query);
-        showSearchResults(results, query);
-    } catch (error) {
-        console.error('Erro na pesquisa:', error);
-    } finally {
-        document.getElementById('loading').style.display = 'none';
-    }
-}
+            // Atualiza interface
+            playerSongTitle.textContent = song.title;
+            playerArtist.textContent = song.artist;
+            playerAlbumCover.src = song.cover;
 
-// Chamada à API do RapidAPI
-async function searchMusicAPI(query) {
-    const url = `/api/search?q=${encodeURIComponent(query)}`;
+            // Mostra o player
+            musicPlayer.classList.add('player-visible');
 
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Erro no proxy da MusicAPI");
+            // Para áudio normal se estiver tocando
+            if (audioPlayer.src) {
+                audioPlayer.pause();
+                audioPlayer.src = '';
+            }
 
-    const data = await response.json();
-    console.log("🎵 Dados da API via backend:", data);
-    return data;
-}
+            // Remove widget anterior se existir
+            const existingWidget = document.getElementById('soundcloudWidget');
+            if (existingWidget) {
+                existingWidget.remove();
+            }
 
+            // Sempre usa SoundCloud para essas músicas
+            playSoundCloudSong(song.soundcloudUrl || song.audio);
+        }
 
-    const response = await fetch(url, options);
-    if (!response.ok) throw new Error("Erro na API MusicAPI");
+        // Função para carregar e tocar música do SoundCloud
+        function playSoundCloudSong(soundcloudUrl) {
+            // Cria container para o widget
+            const widgetContainer = document.createElement('div');
+            widgetContainer.id = 'soundcloudWidget';
+            widgetContainer.style.display = 'none'; // Escondemos o widget
+            document.body.appendChild(widgetContainer);
 
-    const data = await response.json();
-    console.log("🔍 Dados da API:", data); // <-- isso vai mostrar no console o que a API realmente retorna
-    return data;
-}
+            // Cria o iframe do SoundCloud
+            const iframe = document.createElement('iframe');
+            iframe.id = 'soundcloudIframe';
+            iframe.width = '100%';
+            iframe.height = '166';
+            iframe.scrolling = 'no';
+            iframe.frameBorder = 'no';
+            iframe.allow = 'autoplay';
 
+            // URL do widget SoundCloud
+            const widgetUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(soundcloudUrl)}&color=%231DB954&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=true&visual=false`;
+            iframe.src = widgetUrl;
 
-    const response = await fetch(url, options);
-    if (!response.ok) throw new Error("Erro na API MusicAPI");
+            widgetContainer.appendChild(iframe);
 
-    return await response.json();
-}
+            // Configura o widget
+            soundcloudWidget = iframe;
 
-// Exibir resultados
-function showSearchResults(data, query) {
-    const resultsSection = document.getElementById('searchResultsSection');
-    const tracks = data?.tracks || [];
-
-    if (!tracks || tracks.length === 0) {
-        resultsSection.innerHTML = `<h3>Nenhum resultado para "${query}"</h3>`;
-        resultsSection.style.display = 'block';
-        return;
-    }
-
-    resultsSection.innerHTML = `
-        <h3>🎵 Resultados para: "${query}"</h3>
-        <div class="cards">
-            ${tracks.map(track => `
-                <div class="card">
-                    <img src="${track.image}" alt="${track.title}">
-                    <h4>${track.title}</h4>
-                    <p>${track.artist}</p>
-                    ${track.preview ? 
-                        `<button class="play-btn" onclick="playTrack('${track.preview}', '${track.title}', '${track.artist}', '${track.image}')">▶</button>` 
-                        : `<button class="play-btn" style="background:#666;">🔒</button>`}
-                </div>
-            `).join("")}
-        </div>
-    `;
-
-    resultsSection.style.display = 'block';
-}
-
-// Player
-function playTrack(previewUrl, title, artist, cover) {
-    if (audioPlayer.src) {
-        audioPlayer.pause();
-        audioPlayer.src = '';
-    }
-
-    playerSongTitle.textContent = title;
-    playerArtist.textContent = artist;
-    playerAlbumCover.src = cover;
-
-    audioPlayer.src = previewUrl;
-    audioPlayer.play()
-        .then(() => {
             isPlaying = true;
             playPauseBtn.textContent = '⏸';
-        })
-        .catch(error => console.error('Erro ao reproduzir:', error));
+
+            console.log('Reproduzindo SoundCloud:', soundcloudUrl);
+
+            // Tenta controlar o widget via API
+            setupSoundCloudWidget(iframe);
+        }
+
+        // Configura o widget do SoundCloud
+        function setupSoundCloudWidget(iframe) {
+            // A API do SoundCloud requer que o widget seja carregado
+            iframe.onload = function () {
+                console.log('Widget SoundCloud carregado');
+
+                // Tenta acessar a API
+                try {
+                    const widget = SC.Widget(iframe);
+
+                    widget.bind(SC.Widget.Events.READY, function () {
+                        console.log('SoundCloud Widget pronto');
+                    });
+
+                    widget.bind(SC.Widget.Events.PLAY, function () {
+                        console.log('SoundCloud: Tocando');
+                        isPlaying = true;
+                        playPauseBtn.textContent = '⏸';
+                    });
+
+                    widget.bind(SC.Widget.Events.PAUSE, function () {
+                        console.log('SoundCloud: Pausado');
+                        isPlaying = false;
+                        playPauseBtn.textContent = '▶';
+                    });
+
+                    widget.bind(SC.Widget.Events.FINISH, function () {
+                        console.log('SoundCloud: Música terminou');
+                        nextSong();
+                    });
+
+                } catch (error) {
+                    console.log('API SoundCloud não disponível, usando controles básicos');
+                }
+            };
+        }
+
+        function togglePlay() {
+            if (!soundcloudWidget) return;
+
+            try {
+                const widget = SC.Widget(soundcloudWidget);
+
+                widget.getPosition(function (position) {
+                    widget.getDuration(function (duration) {
+                        if (position === duration || position === 0) {
+                            // Se a música terminou ou não começou, recomeça
+                            widget.play();
+                            isPlaying = true;
+                            playPauseBtn.textContent = '⏸';
+                        } else {
+                            // Pausa/Continua a reprodução
+                            widget.toggle();
+                        }
+                    });
+                });
+            } catch (error) {
+                console.log('Erro ao controlar SoundCloud:', error);
+                // Fallback: recarrega a música atual
+                playSong(currentSongIndex, currentPlaylist);
+            }
+        }
+
+        function nextSong() {
+            if (currentPlaylist.length === 0) return;
+
+            currentSongIndex = (currentSongIndex + 1) % currentPlaylist.length;
+            playSong(currentSongIndex, currentPlaylist);
+        }
+
+        function previousSong() {
+            if (currentPlaylist.length === 0) return;
+
+            currentSongIndex = (currentSongIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
+            playSong(currentSongIndex, currentPlaylist);
+        }
+
+        function seekSong(event) {
+            // Para SoundCloud, não é possível controlar o seek via API facilmente
+            alert('Controle de seek não disponível para SoundCloud');
+        }
+
+        function changeVolume(event) {
+            const volumeBar = event.currentTarget;
+            const clickPosition = event.offsetX;
+            const totalWidth = volumeBar.offsetWidth;
+            const volume = clickPosition / totalWidth;
+
+            // Tenta controlar volume do SoundCloud
+            if (soundcloudWidget) {
+                try {
+                    const widget = SC.Widget(soundcloudWidget);
+                    widget.setVolume(volume * 100);
+                } catch (error) {
+                    console.log('Não foi possível controlar volume do SoundCloud');
+                }
+            }
+
+            document.getElementById('volumeLevel').style.width = (volume * 100) + '%';
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Atualiza tempo para SoundCloud (aproximado)
+        function updateSoundCloudTime() {
+            if (soundcloudWidget) {
+                try {
+                    const widget = SC.Widget(soundcloudWidget);
+                    widget.getPosition(function (position) {
+                        currentTimeDisplay.textContent = formatTime(position / 1000);
+                    });
+                    widget.getDuration(function (duration) {
+                        totalTimeDisplay.textContent = formatTime(duration / 1000);
+                    });
+                } catch (error) {
+                    // Ignora erros de tempo
+                }
+            }
+        }
+
+        // Atualiza o tempo a cada segundo
+        setInterval(updateSoundCloudTime, 1000);
+
+        // Atualiza progresso para áudios normais
+        audioPlayer.ontimeupdate = function () {
+            if (!isNaN(audioPlayer.duration)) {
+                const progressPercent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                songProgress.style.width = progressPercent + '%';
+                currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+                totalTimeDisplay.textContent = formatTime(audioPlayer.duration);
+            }
+        };
+
+        // ===== SISTEMA DE AUTENTICAÇÃO E PLAYlists =====
+        function logout() {
+            sessionStorage.removeItem('currentUser');
+            window.location.href = "login.html?logout=true";
+            return false;
+        }
+
+        // Carrega a API do SoundCloud
+        function loadSoundCloudAPI() {
+            const script = document.createElement('script');
+            script.src = 'https://w.soundcloud.com/player/api.js';
+            script.onload = function () {
+                console.log('SoundCloud API carregada');
+            };
+            document.head.appendChild(script);
+        }
+
+        // Verificar autenticação
+        window.addEventListener('DOMContentLoaded', function () {
+            const currentUser = sessionStorage.getItem('currentUser');
+
+            if (!currentUser) {
+                alert('Por favor, faça login para acessar esta página.');
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Carrega API do SoundCloud
+            loadSoundCloudAPI();
+
+            loadPlaylists();
+            setupEventListeners();
+        });
+
+        // Sistema de playlists
+        function loadPlaylists() {
+    const userPlaylists = document.getElementById('userPlaylists');
+    const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+    userPlaylists.innerHTML = '';
+    
+    playlists.forEach(playlist => {
+        const playlistCard = document.createElement('div');
+        playlistCard.className = 'card';
+        playlistCard.innerHTML = `
+            <img src="https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A31BDF2/image-size/original?v=mpbl-1&px=-1" alt="${playlist.name}">
+            <h4>${playlist.name}</h4>
+            <p>${playlist.songs ? playlist.songs.length : 0} músicas</p>
+            <button class="play-btn" onclick="playPlaylist(${playlist.id})">▶</button>
+            <button class="view-playlist" onclick="viewPlaylist(${playlist.id})" style="
+                position: absolute;
+                bottom: 10px;
+                left: 10px;
+                background: #3498db;
+                border: none;
+                border-radius: 15px;
+                padding: 5px 10px;
+                color: white;
+                cursor: pointer;
+                font-size: 0.8rem;
+                opacity: 0;
+                transition: opacity 0.3s;
+            ">Abrir</button>
+            <button class="edit-playlist" onclick="editPlaylist(${playlist.id})">Editar</button>
+            <button class="delete-playlist" onclick="deletePlaylist(${playlist.id})">Excluir</button>
+        `;
+        userPlaylists.appendChild(playlistCard);
+    });
+    
+    // Adiciona estilo para mostrar botão "Abrir" no hover
+    if (!document.getElementById('playlistViewStyles')) {
+        const style = document.createElement('style');
+        style.id = 'playlistViewStyles';
+        style.textContent = `
+            .card:hover .view-playlist {
+                opacity: 1 !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
-function togglePlay() {
-    if (!audioPlayer.src) return;
-    if (isPlaying) {
-        audioPlayer.pause();
-        isPlaying = false;
-        playPauseBtn.textContent = '▶';
+// ===== FUNÇÕES DE EDIÇÃO DE PLAYLIST =====
+function editPlaylist(playlistId) {
+    const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+    const playlist = playlists.find(p => p.id === playlistId);
+    
+    if (!playlist) {
+        alert('Playlist não encontrada!');
+        return;
+    }
+    
+    // Modal de edição
+    const modalHtml = `
+        <div id="editPlaylistModal" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        ">
+            <div style="
+                background: #1c1c1c;
+                padding: 30px;
+                border-radius: 15px;
+                width: 90%;
+                max-width: 500px;
+                border: 2px solid #1DB954;
+            ">
+                <h3 style="color: #1DB954; margin-bottom: 20px;">Editar Playlist</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="color: white; display: block; margin-bottom: 8px;">Nome da Playlist:</label>
+                    <input type="text" id="editPlaylistName" value="${playlist.name}" style="
+                        width: 100%;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #333;
+                        background: #121212;
+                        color: white;
+                        font-size: 1rem;
+                    ">
+                </div>
+                
+                <h4 style="color: #1DB954; margin: 20px 0 10px 0;">Músicas na Playlist (${playlist.songs ? playlist.songs.length : 0})</h4>
+                
+                <div id="playlistSongsList" style="
+                    max-height: 200px;
+                    overflow-y: auto;
+                    margin-bottom: 20px;
+                    background: #121212;
+                    padding: 10px;
+                    border-radius: 8px;
+                ">
+                    ${playlist.songs && playlist.songs.length > 0 ? 
+                        playlist.songs.map((song, index) => `
+                            <div style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                padding: 8px;
+                                border-bottom: 1px solid #333;
+                            ">
+                                <div>
+                                    <strong style="color: white;">${song.title}</strong>
+                                    <br>
+                                    <span style="color: #bbb; font-size: 0.9rem;">${song.artist}</span>
+                                </div>
+                                <button onclick="removeSongFromPlaylist(${playlistId}, ${index})" style="
+                                    background: #e74c3c;
+                                    border: none;
+                                    color: white;
+                                    padding: 5px 10px;
+                                    border-radius: 5px;
+                                    cursor: pointer;
+                                ">Remover</button>
+                            </div>
+                        `).join('') 
+                        : '<p style="color: #bbb; text-align: center;">Nenhuma música adicionada</p>'
+                    }
+                </div>
+                
+                <h4 style="color: #1DB954; margin: 20px 0 10px 0;">Adicionar Músicas</h4>
+                
+                <div style="margin-bottom: 20px;">
+                    <select id="addSongSelect" style="
+                        width: 100%;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid #333;
+                        background: #121212;
+                        color: white;
+                        margin-bottom: 10px;
+                    ">
+                        <option value="">Selecione uma música para adicionar</option>
+                        ${sampleSongs.map(song => `
+                            <option value="${song.title}">${song.title} - ${song.artist}</option>
+                        `).join('')}
+                    </select>
+                    <button onclick="addSongToPlaylist(${playlistId})" style="
+                        background: #1DB954;
+                        border: none;
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        width: 100%;
+                    ">Adicionar Música</button>
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button onclick="closeEditModal()" style="
+                        background: #666;
+                        border: none;
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                    ">Cancelar</button>
+                    <button onclick="savePlaylistChanges(${playlistId})" style="
+                        background: #1DB954;
+                        border: none;
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                    ">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Adiciona o modal à página
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editPlaylistModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function savePlaylistChanges(playlistId) {
+    const newName = document.getElementById('editPlaylistName').value.trim();
+    
+    if (!newName) {
+        alert('Digite um nome para a playlist!');
+        return;
+    }
+    
+    const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+    const playlistIndex = playlists.findIndex(p => p.id === playlistId);
+    
+    if (playlistIndex !== -1) {
+        playlists[playlistIndex].name = newName;
+        localStorage.setItem('userPlaylists', JSON.stringify(playlists));
+        
+        // Recarrega as playlists
+        loadPlaylists();
+        
+        // Atualiza resultados de pesquisa se estiverem visíveis
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput.value) {
+            performSearch();
+        }
+        
+        closeEditModal();
+        alert('Playlist atualizada com sucesso!');
+    }
+}
+
+function addSongToPlaylist(playlistId) {
+    const songSelect = document.getElementById('addSongSelect');
+    const selectedSongTitle = songSelect.value;
+    
+    if (!selectedSongTitle) {
+        alert('Selecione uma música para adicionar!');
+        return;
+    }
+    
+    const songToAdd = sampleSongs.find(song => song.title === selectedSongTitle);
+    
+    if (!songToAdd) {
+        alert('Música não encontrada!');
+        return;
+    }
+    
+    const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+    const playlistIndex = playlists.findIndex(p => p.id === playlistId);
+    
+    if (playlistIndex !== -1) {
+        // Inicializa array de songs se não existir
+        if (!playlists[playlistIndex].songs) {
+            playlists[playlistIndex].songs = [];
+        }
+        
+        // Verifica se a música já está na playlist
+        const songExists = playlists[playlistIndex].songs.some(song => song.title === songToAdd.title);
+        
+        if (songExists) {
+            alert('Esta música já está na playlist!');
+            return;
+        }
+        
+        // Adiciona a música
+        playlists[playlistIndex].songs.push({
+            title: songToAdd.title,
+            artist: songToAdd.artist,
+            cover: songToAdd.cover,
+            audio: songToAdd.audio,
+            soundcloudUrl: songToAdd.soundcloudUrl
+        });
+        
+        localStorage.setItem('userPlaylists', JSON.stringify(playlists));
+        
+        // Atualiza o modal
+        closeEditModal();
+        editPlaylist(playlistId); // Reabre o modal atualizado
+        
+        alert(`"${songToAdd.title}" adicionada à playlist!`);
+    }
+}
+
+function removeSongFromPlaylist(playlistId, songIndex) {
+    const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+    const playlistIndex = playlists.findIndex(p => p.id === playlistId);
+    
+    if (playlistIndex !== -1 && playlists[playlistIndex].songs) {
+        const removedSong = playlists[playlistIndex].songs[songIndex];
+        playlists[playlistIndex].songs.splice(songIndex, 1);
+        
+        localStorage.setItem('userPlaylists', JSON.stringify(playlists));
+        
+        // Atualiza o modal
+        closeEditModal();
+        editPlaylist(playlistId); // Reabre o modal atualizado
+        
+        alert(`"${removedSong.title}" removida da playlist!`);
+    }
+}
+
+function deletePlaylist(playlistId) {
+    if (confirm('Tem certeza que deseja excluir esta playlist? Esta ação não pode ser desfeita.')) {
+        let playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+        const playlistIndex = playlists.findIndex(p => p.id === playlistId);
+        
+        if (playlistIndex !== -1) {
+            const playlistName = playlists[playlistIndex].name;
+            playlists.splice(playlistIndex, 1);
+            localStorage.setItem('userPlaylists', JSON.stringify(playlists));
+            
+            loadPlaylists();
+            
+            // Atualiza resultados de pesquisa se estiverem visíveis
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput.value) {
+                performSearch();
+            }
+            
+            alert(`Playlist "${playlistName}" excluída com sucesso!`);
+        }
+    }
+}
+
+        function playPlaylist(playlistId) {
+            const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+            const playlist = playlists.find(p => p.id === playlistId);
+
+            if (playlist && playlist.songs && playlist.songs.length > 0) {
+                playSong(0, playlist.songs);
+            } else {
+                alert('Playlist vazia! Adicione músicas primeiro.');
+            }
+        }
+
+        function setupEventListeners() {
+    // Criar playlist
+    document.getElementById('criarPlaylistBtn').addEventListener('click', () => {
+        const nomePlaylist = prompt('Digite o nome da nova playlist:');
+        if(nomePlaylist) {
+            let playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+            const newPlaylist = {
+                id: Date.now(),
+                name: nomePlaylist,
+                songs: []
+            };
+            playlists.push(newPlaylist);
+            localStorage.setItem('userPlaylists', JSON.stringify(playlists));
+            loadPlaylists();
+        }
+    });
+
+    // ===== SISTEMA DE PESQUISA REAL =====
+    document.getElementById('searchBtn').addEventListener('click', performSearch);
+    
+    // Pesquisar ao pressionar Enter
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    function performSearch() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        
+        if (!query) {
+            alert('Digite algo para pesquisar!');
+            return;
+        }
+
+        console.log('Pesquisando por:', query);
+        
+        // Resultados da pesquisa
+        const searchResults = {
+            musicas: [],
+            playlists: [],
+            artistas: []
+        };
+
+        // Pesquisar nas músicas
+        sampleSongs.forEach(song => {
+            if (song.title.toLowerCase().includes(query) || 
+                song.artist.toLowerCase().includes(query)) {
+                searchResults.musicas.push(song);
+            }
+        });
+
+        // Pesquisar nas playlists do usuário
+        const userPlaylists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+        userPlaylists.forEach(playlist => {
+            if (playlist.name.toLowerCase().includes(query)) {
+                searchResults.playlists.push(playlist);
+            }
+        });
+
+        // Pesquisar artistas (baseado nas músicas)
+        const artistasEncontrados = [];
+        sampleSongs.forEach(song => {
+            if (song.artist.toLowerCase().includes(query) && 
+                !artistasEncontrados.includes(song.artist)) {
+                artistasEncontrados.push(song.artist);
+            }
+        });
+        
+        artistasEncontrados.forEach(artista => {
+            searchResults.artistas.push({
+                name: artista,
+                image: sampleSongs.find(song => song.artist === artista)?.cover || 'https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A31BDF2/image-size/original?v=mpbl-1&px=-1'
+            });
+        });
+
+        // Mostrar resultados
+        showSearchResults(searchResults, query);
+    }
+
+    function showSearchResults(results, query) {
+        // Cria ou atualiza a seção de resultados
+        let resultsSection = document.getElementById('searchResultsSection');
+        
+        if (!resultsSection) {
+            resultsSection = document.createElement('div');
+            resultsSection.id = 'searchResultsSection';
+            resultsSection.innerHTML = '<h3 class="section-title">Resultados da Pesquisa</h3>';
+            document.querySelector('.main').insertBefore(resultsSection, document.querySelector('.main').firstChild);
+        }
+
+        resultsSection.innerHTML = `
+            <h3 class="section-title">Resultados para: "${query}"</h3>
+            
+            ${results.musicas.length > 0 ? `
+            <div class="search-category">
+                <h4>Músicas</h4>
+                <div class="cards">
+                    ${results.musicas.map(song => `
+                        <div class="card" data-song="${song.title}" data-artist="${song.artist}">
+                            <img src="${song.cover}" alt="${song.title}">
+                            <h4>${song.title}</h4>
+                            <p>${song.artist}</p>
+                            <button class="play-btn">▶</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
+            ${results.playlists.length > 0 ? `
+            <div class="search-category">
+                <h4>Playlists</h4>
+                <div class="cards">
+                    ${results.playlists.map(playlist => `
+                        <div class="card">
+                            <img src="https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A31BDF2/image-size/original?v=mpbl-1&px=-1" alt="${playlist.name}">
+                            <h4>${playlist.name}</h4>
+                            <p>${playlist.songs ? playlist.songs.length : 0} músicas</p>
+                            <button class="play-btn" onclick="playPlaylist(${playlist.id})">▶</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
+            ${results.artistas.length > 0 ? `
+            <div class="search-category">
+                <h4>Artistas</h4>
+                <div class="artists">
+                    ${results.artistas.map(artist => `
+                        <div class="artist-card">
+                            <img src="${artist.image}" alt="${artist.name}">
+                            <h4>${artist.name}</h4>
+                            <button class="follow-btn">Seguir</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
+            ${results.musicas.length === 0 && results.playlists.length === 0 && results.artistas.length === 0 ? `
+            <div class="no-results">
+                <p>Nenhum resultado encontrado para "${query}"</p>
+                <p>Tente outros termos de pesquisa.</p>
+            </div>
+            ` : ''}
+        `;
+
+        // Adiciona estilo para os resultados
+        if (!document.getElementById('searchStyles')) {
+            const style = document.createElement('style');
+            style.id = 'searchStyles';
+            style.textContent = `
+                .search-category {
+                    margin: 20px 0;
+                }
+                
+                .search-category h4 {
+                    color: #1DB954;
+                    margin-bottom: 10px;
+                    font-size: 1.2rem;
+                }
+                
+                .no-results {
+                    text-align: center;
+                    padding: 40px;
+                    color: #bbb;
+                }
+                
+                .no-results p {
+                    margin: 10px 0;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
+    // Limpar pesquisa quando o input for alterado para vazio
+    document.getElementById('searchInput').addEventListener('input', function() {
+        if (this.value.trim() === '') {
+            const resultsSection = document.getElementById('searchResultsSection');
+            if (resultsSection) {
+                resultsSection.remove();
+            }
+        }
+    });
+
+    // Botões de play nas músicas (agora funciona nos resultados também)
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('play-btn')) {
+            const card = e.target.closest('.card');
+            const songTitle = card.querySelector('h4').textContent;
+            const artist = card.getAttribute('data-artist') || card.querySelector('p')?.textContent || 'Artista Desconhecido';
+            
+            // Encontra a música na lista
+            const songIndex = sampleSongs.findIndex(song => 
+                song.title === songTitle || (song.artist === artist && song.title === songTitle)
+            );
+            
+            if (songIndex !== -1) {
+                playSong(songIndex, sampleSongs);
+            } else {
+                // Se não encontrou, tenta pelo título
+                const songByTitle = sampleSongs.find(song => song.title === songTitle);
+                if (songByTitle) {
+                    playSong(sampleSongs.indexOf(songByTitle), sampleSongs);
+                } else {
+                    alert('Música não encontrada na biblioteca!');
+                }
+            }
+        }
+
+        if (e.target.classList.contains('follow-btn')) {
+            const artistCard = e.target.closest('.artist-card');
+            const artistName = artistCard.querySelector('h4').textContent;
+            e.target.textContent = e.target.textContent === 'Seguir' ? 'Seguindo' : 'Seguir';
+            alert(`Você ${e.target.textContent === 'Seguindo' ? 'seguiu' : 'deixou de seguir'} ${artistName}`);
+        }
+
+        if (e.target.classList.contains('delete-playlist')) {
+            const playlistId = parseInt(e.target.getAttribute('data-id'));
+            if (confirm('Tem certeza que deseja excluir esta playlist?')) {
+                let playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+                playlists = playlists.filter(p => p.id !== playlistId);
+                localStorage.setItem('userPlaylists', JSON.stringify(playlists));
+                loadPlaylists();
+                
+                // Atualiza resultados de pesquisa se estiverem visíveis
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput.value) {
+                    performSearch();
+                }
+            }
+        }
+    });
+
+    // Explorar podcasts
+    document.getElementById('explorePodcastsBtn').addEventListener('click', function() {
+        alert('Funcionalidade de explorar podcasts em desenvolvimento!');
+    });
+}
+// ===== SISTEMA DE VISUALIZAÇÃO DE PLAYLIST =====
+function viewPlaylist(playlistId) {
+    const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+    const playlist = playlists.find(p => p.id === playlistId);
+    
+    if (!playlist) {
+        alert('Playlist não encontrada!');
+        return;
+    }
+    
+    // Modal de visualização da playlist
+    const modalHtml = `
+        <div id="viewPlaylistModal" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            overflow-y: auto;
+        ">
+            <div style="
+                background: #1c1c1c;
+                padding: 30px;
+                border-radius: 15px;
+                width: 90%;
+                max-width: 800px;
+                max-height: 90vh;
+                overflow-y: auto;
+                border: 2px solid #1DB954;
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: #1DB954; margin: 0;">${playlist.name}</h3>
+                    <button onclick="closeViewModal()" style="
+                        background: #666;
+                        border: none;
+                        color: white;
+                        padding: 8px 15px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-size: 1.2rem;
+                    ">×</button>
+                </div>
+                
+                <div style="display: flex; gap: 20px; margin-bottom: 20px; align-items: center;">
+                    <img src="https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A31BDF2/image-size/original?v=mpbl-1&px=-1" 
+                         alt="${playlist.name}" 
+                         style="width: 150px; height: 150px; border-radius: 10px; object-fit: cover;">
+                    <div>
+                        <p style="color: #bbb; margin: 5px 0;">PLAYLIST</p>
+                        <h2 style="color: white; margin: 10px 0; font-size: 2rem;">${playlist.name}</h2>
+                        <p style="color: #bbb;">${playlist.songs ? playlist.songs.length : 0} músicas</p>
+                        <button onclick="playPlaylist(${playlistId})" style="
+                            background: #1DB954;
+                            border: none;
+                            color: white;
+                            padding: 12px 30px;
+                            border-radius: 25px;
+                            cursor: pointer;
+                            font-size: 1rem;
+                            font-weight: bold;
+                            margin-top: 10px;
+                        ">▶ Reproduzir Playlist</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h4 style="color: #1DB954; margin-bottom: 15px;">Músicas da Playlist</h4>
+                    
+                    <div id="playlistSongsView">
+                        ${playlist.songs && playlist.songs.length > 0 ? 
+                            playlist.songs.map((song, index) => `
+                                <div class="playlist-song-item" style="
+                                    display: flex;
+                                    justify-content: space-between;
+                                    align-items: center;
+                                    padding: 12px;
+                                    border-radius: 8px;
+                                    margin-bottom: 8px;
+                                    background: rgba(255,255,255,0.05);
+                                    transition: background 0.3s;
+                                    cursor: pointer;
+                                " onmouseover="this.style.background='rgba(255,255,255,0.1)'" 
+                                onmouseout="this.style.background='rgba(255,255,255,0.05)'"
+                                onclick="playSongFromPlaylist(${playlistId}, ${index})">
+                                    <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                                        <span style="color: #bbb; width: 30px; text-align: center;">${index + 1}</span>
+                                        <img src="${song.cover}" alt="${song.title}" 
+                                             style="width: 50px; height: 50px; border-radius: 5px; object-fit: cover;">
+                                        <div>
+                                            <div style="color: white; font-weight: bold;">${song.title}</div>
+                                            <div style="color: #bbb; font-size: 0.9rem;">${song.artist}</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span style="color: #bbb; font-size: 0.9rem;">3:45</span>
+                                        <button class="play-song-btn" style="
+                                            background: transparent;
+                                            border: none;
+                                            color: #1DB954;
+                                            font-size: 1.2rem;
+                                            cursor: pointer;
+                                            opacity: 0;
+                                            transition: opacity 0.3s;
+                                        ">▶</button>
+                                    </div>
+                                </div>
+                            `).join('') 
+                            : `
+                            <div style="text-align: center; padding: 40px; color: #bbb;">
+                                <p>Esta playlist está vazia</p>
+                                <button onclick="closeViewModal(); editPlaylist(${playlistId})" style="
+                                    background: #1DB954;
+                                    border: none;
+                                    color: white;
+                                    padding: 10px 20px;
+                                    border-radius: 8px;
+                                    cursor: pointer;
+                                    margin-top: 10px;
+                                ">Adicionar Músicas</button>
+                            </div>
+                            `
+                        }
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button onclick="closeViewModal(); editPlaylist(${playlistId})" style="
+                        background: #1DB954;
+                        border: none;
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                    ">Editar Playlist</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Adiciona o modal à página
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Adiciona estilos para os botões de play
+    const style = document.createElement('style');
+    style.textContent = `
+        .playlist-song-item:hover .play-song-btn {
+            opacity: 1 !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function closeViewModal() {
+    const modal = document.getElementById('viewPlaylistModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function playSongFromPlaylist(playlistId, songIndex) {
+    const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+    const playlist = playlists.find(p => p.id === playlistId);
+    
+    if (playlist && playlist.songs && playlist.songs[songIndex]) {
+        const song = playlist.songs[songIndex];
+        
+        // Toca a música individual
+        const tempSong = [{
+            title: song.title,
+            artist: song.artist,
+            cover: song.cover,
+            audio: song.audio,
+            soundcloudUrl: song.soundcloudUrl
+        }];
+        
+        playSong(0, tempSong);
+        closeViewModal();
+    }
+}
+
+// Atualize a função playPlaylist para fechar o modal se estiver aberto
+function playPlaylist(playlistId) {
+    const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
+    const playlist = playlists.find(p => p.id === playlistId);
+    
+    if (playlist && playlist.songs && playlist.songs.length > 0) {
+        playSong(0, playlist.songs);
+        closeViewModal(); // Fecha o modal se estiver aberto
     } else {
-        audioPlayer.play();
-        isPlaying = true;
-        playPauseBtn.textContent = '⏸';
+        alert('Playlist vazia! Adicione músicas primeiro.');
     }
 }
-
-audioPlayer.ontimeupdate = function() {
-    if (!isNaN(audioPlayer.duration)) {
-        const progressPercent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-        songProgress.style.width = progressPercent + '%';
-        currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
-        totalTimeDisplay.textContent = formatTime(audioPlayer.duration);
-    }
-};
-
-function formatTime(seconds) {
-    if (isNaN(seconds)) return "0:00";
-    const minutes = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${minutes}:${secs.toString().padStart(2,'0')}`;
-}
-
-document.getElementById('searchBtn').addEventListener('click', performSearch);
-document.getElementById('searchInput').addEventListener('keypress', function(e){
-    if(e.key === 'Enter') performSearch();
-});
-
-    </script>
+    </  >
 </body>
+
 </html>
-
-
