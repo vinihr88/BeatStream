@@ -159,31 +159,6 @@
                         <h4>Piloto da Nasa</h4>
                         <button class="play-btn">▶</button>
                     </div>
-                    <div class="card" data-song="Artista Genérico" data-artist="Artista 3">
-                        <img src="https://m.media-amazon.com/images/I/41B1VbY-TwL._UXNaN_FMjpg_QL85_.jpg"
-                            alt="Artista Genérico">
-                        <h4>Artista Genérico</h4>
-                        <button class="play-btn">▶</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Artistas populares -->
-            <div>
-                <h3 class="section-title">Artistas populares</h3>
-                <div class="artists">
-                    <div class="artist-card">
-                        <img src="https://pbs.twimg.com/profile_images/1813452990302375936/li3KGu_F_400x400.jpg"
-                            alt="Boaventura">
-                        <h4>Boaventura</h4>
-                        <button class="follow-btn">Seguir</button>
-                    </div>
-                    <div class="artist-card">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvnNC5nB1Bs-1mEKNcE9SAJKmbi9CJvGbd1UrSvCpNtzMpfHiPbBPilxOWHmDFfrEMRkAwjWc8mB6FaH4_EG_YNVS9h2fPYA-mXktaYoQg"
-                            alt="Veigh">
-                        <h4>Veigh</h4>
-                        <button class="follow-btn">Seguir</button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -191,14 +166,16 @@
 
     <script>
         
-      // ===== SISTEMA DE PLAYER COM API DEEZER =====
+// ===== CONFIGURAÇÃO DO RAPIDAPI =====
+const RAPID_API_KEY = "f413ecdd94msh79bffab8fb1253cp1e669ajs2533082c3a2f";
+const RAPID_API_HOST = "musicapi13.p.rapidapi.com";
+
+// Player
 let currentSongIndex = 0;
 let isPlaying = false;
 let currentPlaylist = [];
 let currentAudio = null;
 
-// Elementos do player
-const musicPlayer = document.getElementById('musicPlayer');
 const playPauseBtn = document.getElementById('playPauseBtn');
 const songProgress = document.getElementById('songProgress');
 const currentTimeDisplay = document.getElementById('currentTime');
@@ -208,29 +185,7 @@ const playerArtist = document.getElementById('playerArtist');
 const playerAlbumCover = document.getElementById('playerAlbumCover');
 const audioPlayer = document.getElementById('audioPlayer');
 
-// Músicas da biblioteca local
-const sampleSongs = [
-    {
-        title: "Entrelinhas",
-        artist: "Boaventura",
-        cover: "https://i.scdn.co/image/ab67616d0000b273f0700f96146e437349a6ea20",
-        preview: "https://cdns-preview.d.dzcdn.net/stream/c-deda7fa9316d9e9e880d2c6207e92260-5.mp3"
-    },
-    {
-        title: "Piloto da Nasa",
-        artist: "Mc Kevin, Vulgo FK, Gaab", 
-        cover: "https://i.scdn.co/image/ab67616d00001e0220e020e6c6412855bc46b45c",
-        preview: "https://cdns-preview.d.dzcdn.net/stream/c-deda7fa9316d9e9e880d2c6207e92260-5.mp3"
-    }
-];
-
-// ===== API DEEZER =====
-const DEEZER_API = {
-    searchUrl: 'https://api.deezer.com/search',
-    trackUrl: 'https://api.deezer.com/track/'
-};
-
-// Função principal de pesquisa
+// Função principal de pesquisa usando RapidAPI
 async function performSearch() {
     const query = document.getElementById('searchInput').value.trim();
     
@@ -239,31 +194,22 @@ async function performSearch() {
         return;
     }
 
-    console.log('🔍 Pesquisando na Deezer:', query);
-    
-    // Mostra loading
     document.getElementById('mainContent').style.display = 'none';
     document.getElementById('loading').style.display = 'block';
     
     try {
-        const results = await searchDeezer(query);
+        const results = await searchMusicAPI(query);
         showSearchResults(results, query);
     } catch (error) {
         console.error('Erro na pesquisa:', error);
-        showErrorResults(query);
     } finally {
         document.getElementById('loading').style.display = 'none';
     }
 }
 
-// Pesquisa na API Deezer
-// Substitua por sua chave e host do RapidAPI
-const RAPID_API_KEY = "f413ecdd94msh79bffab8fb1253cp1e669ajs2533082c3a2f";
-const RAPID_API_HOST = "musicapi13.p.rapidapi.com";
-
+// Chamada à API do RapidAPI
 async function searchMusicAPI(query) {
     const url = `https://${RAPID_API_HOST}/public/search/introspection?q=${encodeURIComponent(query)}`;
-
     const options = {
         method: 'GET',
         headers: {
@@ -272,193 +218,75 @@ async function searchMusicAPI(query) {
         }
     };
 
-    try {
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            throw new Error("Erro na API MusicAPI");
-        }
-        const data = await response.json();
-        console.log("Resultados:", data);
-        return data;
-    } catch (error) {
-        console.error("Erro na requisição:", error);
-        return [];
-    }
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error("Erro na API MusicAPI");
+
+    return await response.json();
 }
 
-
-// Exibe resultados da pesquisa
-function showSearchResults(tracks, query) {
+// Exibir resultados
+function showSearchResults(data, query) {
     const resultsSection = document.getElementById('searchResultsSection');
-    
+    const tracks = data?.tracks || [];
+
     if (!tracks || tracks.length === 0) {
-        resultsSection.innerHTML = `
-            <div class="search-results-header">
-                <h3 class="section-title">Resultados para: "${query}"</h3>
-                <button class="back-button" onclick="showMainContent()">← Voltar</button>
-            </div>
-            <div class="no-results">
-                <p>Nenhuma música encontrada para "${query}"</p>
-                <p>Tente outros termos de pesquisa.</p>
-            </div>
-        `;
+        resultsSection.innerHTML = `<h3>Nenhum resultado para "${query}"</h3>`;
         resultsSection.style.display = 'block';
         return;
     }
 
     resultsSection.innerHTML = `
-        <div class="search-results-header">
-            <h3 class="section-title">🎵 ${tracks.length} resultados para: "${query}"</h3>
-            <button class="back-button" onclick="showMainContent()">← Voltar</button>
-        </div>
-        
-        <div class="search-category">
-            <h4>Músicas</h4>
-            <div class="cards">
-                ${tracks.map(track => `
-                    <div class="card" data-id="${track.id}">
-                        <img src="${track.album.cover_medium}" alt="${track.title}" 
-                             onerror="this.src='https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A31BDF2/image-size/original?v=mpbl-1&px=-1'">
-                        <h4>${track.title_short || track.title}</h4>
-                        <p>${track.artist.name}</p>
-                        <p class="album-info">${track.album.title}</p>
-                        <small style="color: #1DB954; position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); padding: 2px 5px; border-radius: 3px; font-size: 0.7rem;">
-                            ${track.duration ? Math.floor(track.duration / 60) + ':' + (track.duration % 60).toString().padStart(2, '0') : '--:--'}
-                        </small>
-                        ${track.preview ? 
-                            `<button class="play-btn" onclick="playDeezerTrack('${track.preview}', '${track.title_short || track.title}', '${track.artist.name}', '${track.album.cover_medium}')">▶</button>` :
-                            `<button class="play-btn" style="background: #666;" onclick="showNoPreviewMessage('${track.title_short || track.title}')">🔒</button>`
-                        }
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 20px; color: #bbb;">
-            <p>🎧 Powered by Deezer API - Preview de 30 segundos</p>
+        <h3>🎵 Resultados para: "${query}"</h3>
+        <div class="cards">
+            ${tracks.map(track => `
+                <div class="card">
+                    <img src="${track.image}" alt="${track.title}">
+                    <h4>${track.title}</h4>
+                    <p>${track.artist}</p>
+                    ${track.preview ? 
+                        `<button class="play-btn" onclick="playTrack('${track.preview}', '${track.title}', '${track.artist}', '${track.image}')">▶</button>` 
+                        : `<button class="play-btn" style="background:#666;">🔒</button>`}
+                </div>
+            `).join("")}
         </div>
     `;
-    
+
     resultsSection.style.display = 'block';
 }
 
-// Função para mostrar erro
-function showErrorResults(query) {
-    const resultsSection = document.getElementById('searchResultsSection');
-    
-    resultsSection.innerHTML = `
-        <div class="search-results-header">
-            <h3 class="section-title">Resultados para: "${query}"</h3>
-            <button class="back-button" onclick="showMainContent()">← Voltar</button>
-        </div>
-        <div class="no-results">
-            <p>Erro ao buscar músicas. Verifique sua conexão.</p>
-            <button onclick="performSearch()" style="
-                background: #1DB954;
-                border: none;
-                color: white;
-                padding: 10px 20px;
-                border-radius: 8px;
-                cursor: pointer;
-                margin-top: 10px;
-            ">Tentar Novamente</button>
-        </div>
-    `;
-    
-    resultsSection.style.display = 'block';
-}
-
-// ===== PLAYER DEEZER =====
-function playDeezerTrack(previewUrl, title, artist, cover) {
-    console.log('🎵 Tocando:', title, 'Artista:', artist);
-    
-    // Para áudio anterior
+// Player
+function playTrack(previewUrl, title, artist, cover) {
     if (audioPlayer.src) {
         audioPlayer.pause();
         audioPlayer.src = '';
     }
-    
-    // Atualiza interface do player
+
     playerSongTitle.textContent = title;
     playerArtist.textContent = artist;
     playerAlbumCover.src = cover;
-    musicPlayer.style.display = 'flex';
-    musicPlayer.classList.add('player-visible');
-    
-    // Configura e toca o áudio
+
     audioPlayer.src = previewUrl;
     audioPlayer.play()
         .then(() => {
             isPlaying = true;
             playPauseBtn.textContent = '⏸';
-            showNotification(`🎵 Tocando: ${title} - ${artist}`);
         })
-        .catch(error => {
-            console.error('Erro ao reproduzir:', error);
-            showNotification('❌ Erro ao reproduzir a música');
-        });
+        .catch(error => console.error('Erro ao reproduzir:', error));
 }
 
-// Mensagem para músicas sem preview
-function showNoPreviewMessage(title) {
-    showNotification(`🔒 "${title}" - Preview não disponível`);
-}
-
-// Controles do player
 function togglePlay() {
     if (!audioPlayer.src) return;
-    
     if (isPlaying) {
         audioPlayer.pause();
         isPlaying = false;
         playPauseBtn.textContent = '▶';
     } else {
-        audioPlayer.play()
-            .then(() => {
-                isPlaying = true;
-                playPauseBtn.textContent = '⏸';
-            })
-            .catch(error => {
-                console.error('Erro ao retomar:', error);
-            });
+        audioPlayer.play();
+        isPlaying = true;
+        playPauseBtn.textContent = '⏸';
     }
 }
 
-function nextSong() {
-    // Para demonstração, toca próxima música da biblioteca
-    currentSongIndex = (currentSongIndex + 1) % sampleSongs.length;
-    const song = sampleSongs[currentSongIndex];
-    playDeezerTrack(song.preview, song.title, song.artist, song.cover);
-}
-
-function previousSong() {
-    currentSongIndex = (currentSongIndex - 1 + sampleSongs.length) % sampleSongs.length;
-    const song = sampleSongs[currentSongIndex];
-    playDeezerTrack(song.preview, song.title, song.artist, song.cover);
-}
-
-function seekSong(event) {
-    if (!audioPlayer.src || isNaN(audioPlayer.duration)) return;
-    
-    const progressBar = event.currentTarget;
-    const clickPosition = event.offsetX;
-    const totalWidth = progressBar.offsetWidth;
-    const seekTime = (clickPosition / totalWidth) * audioPlayer.duration;
-    
-    audioPlayer.currentTime = seekTime;
-}
-
-function changeVolume(event) {
-    const volumeBar = event.currentTarget;
-    const clickPosition = event.offsetX;
-    const totalWidth = volumeBar.offsetWidth;
-    const volume = clickPosition / totalWidth;
-    
-    audioPlayer.volume = volume;
-    document.getElementById('volumeLevel').style.width = (volume * 100) + '%';
-}
-
-// Atualiza progresso da música
 audioPlayer.ontimeupdate = function() {
     if (!isNaN(audioPlayer.duration)) {
         const progressPercent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
@@ -468,205 +296,18 @@ audioPlayer.ontimeupdate = function() {
     }
 };
 
-audioPlayer.onended = function() {
-    isPlaying = false;
-    playPauseBtn.textContent = '▶';
-    showNotification('⏹ Música terminada');
-};
-
-// Formata tempo (mm:ss)
 function formatTime(seconds) {
     if (isNaN(seconds)) return "0:00";
-    
     const minutes = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    return `${minutes}:${secs.toString().padStart(2,'0')}`;
 }
 
-// ===== FUNÇÕES AUXILIARES =====
-function showMainContent() {
-    document.getElementById('searchResultsSection').style.display = 'none';
-    document.getElementById('mainContent').style.display = 'block';
-    document.getElementById('searchInput').value = '';
-}
-
-function showNotification(message) {
-    const existingNotification = document.getElementById('musicNotification');
-    if (existingNotification) existingNotification.remove();
-
-    const notification = document.createElement('div');
-    notification.id = 'musicNotification';
-    notification.innerHTML = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #1DB954;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        z-index: 10000;
-        font-weight: bold;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        animation: slideIn 0.3s ease;
-    `;
-
-    document.body.appendChild(notification);
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, 3000);
-}
-
-// ===== SISTEMA DE PLAYLISTS =====
-function loadPlaylists() {
-    const userPlaylists = document.getElementById('userPlaylists');
-    const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
-    userPlaylists.innerHTML = '';
-    
-    playlists.forEach(playlist => {
-        const playlistCard = document.createElement('div');
-        playlistCard.className = 'card';
-        playlistCard.innerHTML = `
-            <img src="https://community.spotify.com/t5/image/serverpage/image-id/25294i2836BD1C1A31BDF2/image-size/original?v=mpbl-1&px=-1" alt="${playlist.name}">
-            <h4>${playlist.name}</h4>
-            <p>${playlist.songs ? playlist.songs.length : 0} músicas</p>
-            <button class="play-btn" onclick="playPlaylist(${playlist.id})">▶</button>
-        `;
-        userPlaylists.appendChild(playlistCard);
-    });
-}
-
-function playPlaylist(playlistId) {
-    const playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
-    const playlist = playlists.find(p => p.id === playlistId);
-    if (playlist && playlist.songs && playlist.songs.length > 0) {
-        const firstSong = playlist.songs[0];
-        playDeezerTrack(firstSong.preview, firstSong.title, firstSong.artist, firstSong.cover);
-    } else {
-        alert('Playlist vazia! Adicione músicas primeiro.');
-    }
-}
-
-// ===== CONFIGURAÇÃO INICIAL =====
-function setupEventListeners() {
-    // Criar playlist
-    document.getElementById('criarPlaylistBtn').addEventListener('click', () => {
-        const nomePlaylist = prompt('Digite o nome da nova playlist:');
-        if (nomePlaylist) {
-            let playlists = JSON.parse(localStorage.getItem('userPlaylists')) || [];
-            const newPlaylist = {
-                id: Date.now(),
-                name: nomePlaylist,
-                songs: []
-            };
-            playlists.push(newPlaylist);
-            localStorage.setItem('userPlaylists', JSON.stringify(playlists));
-            loadPlaylists();
-        }
-    });
-
-    // Pesquisar
-    document.getElementById('searchBtn').addEventListener('click', performSearch);
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') performSearch();
-    });
-
-    // Limpar pesquisa
-    document.getElementById('searchInput').addEventListener('input', function() {
-        if (this.value.trim() === '') {
-            showMainContent();
-        }
-    });
-
-    // Botões de play nas músicas da biblioteca
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('play-btn')) {
-            const card = e.target.closest('.card');
-            const songTitle = card.querySelector('h4').textContent;
-            const song = sampleSongs.find(s => s.title === songTitle);
-            if (song) {
-                playDeezerTrack(song.preview, song.title, song.artist, song.cover);
-            }
-        }
-    });
-}
-
-// ===== INICIALIZAÇÃO =====
-window.addEventListener('DOMContentLoaded', function() {
-    const currentUser = sessionStorage.getItem('currentUser');
-    if (!currentUser) {
-        alert('Por favor, faça login para acessar esta página.');
-        window.location.href = "login.html";
-        return;
-    }
-
-    loadPlaylists();
-    setupEventListeners();
+document.getElementById('searchBtn').addEventListener('click', performSearch);
+document.getElementById('searchInput').addEventListener('keypress', function(e){
+    if(e.key === 'Enter') performSearch();
 });
 
-function logout() {
-    sessionStorage.removeItem('currentUser');
-    window.location.href = "login.html?logout=true";
-    return false;
-}
-
-// Adiciona estilos CSS
-const additionalStyles = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    
-    .album-info {
-        color: #888;
-        font-size: 0.8rem;
-        margin-top: 5px;
-    }
-    
-    .no-results {
-        text-align: center;
-        padding: 40px;
-        color: #bbb;
-    }
-    
-    .search-results-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-    
-    .back-button {
-        background: #666;
-        border: none;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        cursor: pointer;
-        font-size: 0.9rem;
-    }
-    
-    .back-button:hover {
-        background: #777;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-`;
-
-// Adiciona estilos à página
-if (!document.getElementById('deezer-styles')) {
-    const styleElement = document.createElement('style');
-    styleElement.id = 'deezer-styles';
-    styleElement.textContent = additionalStyles;
-    document.head.appendChild(styleElement);
-}   
     </script>
 </body>
-
-
 </html>
