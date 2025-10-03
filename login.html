@@ -1,72 +1,645 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="teste.css">
+    <title>beatStream Genspark - Login</title>
+    <style>
+        :root {
+            --primary: #2a2a72;
+            --secondary: #009ffd;
+            --accent: #00d4ff;
+            --dark: #0a0a2a;
+            --light: #f8f9fa;
+            --success: #2ecc71;
+            --error: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), var(--primary));
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        
+        .logo p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+        
+        .auth-container {
+            display: flex;
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        .auth-forms {
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .form-container {
+            display: none;
+        }
+        
+        .form-container.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-header {
+            margin-bottom: 30px;
+        }
+        
+        .form-header h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .form-header p {
+            opacity: 0.7;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: var(--light);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(0, 159, 253, 0.2);
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--light);
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+        }
+        
+        .remember-me input {
+            margin-right: 8px;
+        }
+        
+        .forgot-password {
+            color: var(--secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .forgot-password:hover {
+            color: var(--accent);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, var(--secondary), var(--accent));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 159, 253, 0.4);
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .divider span {
+            background: rgba(42, 42, 114, 0.8);
+            padding: 0 15px;
+            position: relative;
+        }
+        
+        .social-login {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .social-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .switch-form {
+            text-align: center;
+            margin-top: 25px;
+        }
+        
+        .switch-form a {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        
+        .switch-form a:hover {
+            color: var(--accent);
+        }
+        
+        .auth-visual {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(0, 159, 253, 0.2), rgba(0, 212, 255, 0.1));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .visual-content {
+            text-align: center;
+            z-index: 2;
+        }
+        
+        .visual-content h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        
+        .visual-content p {
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+        
+        .features {
+            text-align: left;
+            margin-top: 30px;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .feature i {
+            color: var(--accent);
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(-1000px) rotate(720deg);
+            }
+        }
+        
+        .terms {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .terms a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+            }
+            
+            .auth-visual {
+                display: none;
+            }
+            
+            .logo h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
 </head>
-
 <body>
     <div class="container">
-        <div class="content">
-            <div class="first-column">
-                <h2 class="title">Olá!</h2>
-                <p class="description">Não tem conta?</p>
-                <button class="btn" onclick="window.location.href='cadastro.html'">Criar Conta</button>
+        <div class="logo">
+            <h1>beatStream</h1>
+            <p>Genspark</p>
+        </div>
+        
+        <div class="auth-container">
+            <div class="auth-forms">
+                <!-- Formulário de Login -->
+                <div class="form-container active" id="login-form">
+                    <div class="form-header">
+                        <h2>Bem-vindo de volta</h2>
+                        <p>Entre na sua conta para continuar</p>
+                    </div>
+                    
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="login-email">E-mail</label>
+                            <input type="email" id="login-email" class="form-control" placeholder="seu@email.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="login-password">Senha</label>
+                            <div class="password-container">
+                                <input type="password" id="login-password" class="form-control" placeholder="Sua senha" required>
+                                <button type="button" class="toggle-password" id="toggle-login-password">👁️</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-options">
+                            <div class="remember-me">
+                                <input type="checkbox" id="remember-me">
+                                <label for="remember-me">Lembrar-me</label>
+                            </div>
+                            <a href="#" class="forgot-password">Esqueceu a senha?</a>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Entrar</button>
+                        
+                        <div class="divider">
+                            <span>Ou entre com</span>
+                        </div>
+                        
+                        <div class="social-login">
+                            <button type="button" class="social-btn">
+                                <i>G</i> Google
+                            </button>
+                            <button type="button" class="social-btn">
+                                <i>f</i> Facebook
+                            </button>
+                        </div>
+                        
+                        <div class="switch-form">
+                            <p>Não tem uma conta? <a href="#" id="switch-to-register">Cadastre-se</a></p>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Formulário de Cadastro -->
+                <div class="form-container" id="register-form">
+                    <div class="form-header">
+                        <h2>Criar Conta</h2>
+                        <p>Junte-se à comunidade beatStream</p>
+                    </div>
+                    
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label for="register-name">Nome completo</label>
+                            <input type="text" id="register-name" class="form-control" placeholder="Seu nome completo" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-email">E-mail</label>
+                            <input type="email" id="register-email" class="form-control" placeholder="seu@email.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-password">Senha</label>
+                            <div class="password-container">
+                                <input type="password" id="register-password" class="form-control" placeholder="Crie uma senha forte" required>
+                                <button type="button" class="toggle-password" id="toggle-register-password">👁️</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-confirm-password">Confirmar senha</label>
+                            <div class="password-container">
+                                <input type="password" id="register-confirm-password" class="form-control" placeholder="Digite a senha novamente" required>
+                                <button type="button" class="toggle-password" id="toggle-register-confirm-password">👁️</button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Criar Conta</button>
+                        
+                        <div class="divider">
+                            <span>Ou cadastre-se com</span>
+                        </div>
+                        
+                        <div class="social-login">
+                            <button type="button" class="social-btn">
+                                <i>G</i> Google
+                            </button>
+                            <button type="button" class="social-btn">
+                                <i>f</i> Facebook
+                            </button>
+                        </div>
+                        
+                        <div class="switch-form">
+                            <p>Já tem uma conta? <a href="#" id="switch-to-login">Faça login</a></p>
+                        </div>
+                        
+                        <div class="terms">
+                            <p>Ao se cadastrar, você concorda com nossos <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>.</p>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="second-column">
-                <h2 class="title">Entrar</h2>
-                <form class="form" id="loginForm">
-                    <input type="email" id="loginEmail" placeholder="Email" required>
-                    <input type="password" id="loginPassword" placeholder="Senha" required>
-                    <button type="submit" class="btn">Entrar</button>
-                </form>
+            
+            <div class="auth-visual">
+                <div class="floating-elements" id="floating-elements"></div>
+                <div class="visual-content">
+                    <h3>Descubra um mundo de conteúdo</h3>
+                    <p>Junte-se a milhões de usuários que já estão explorando o beatStream</p>
+                    
+                    <div class="features">
+                        <div class="feature">
+                            <i>✓</i>
+                            <span>Conteúdo exclusivo</span>
+                        </div>
+                        <div class="feature">
+                            <i>✓</i>
+                            <span>Recomendações personalizadas</span>
+                        </div>
+                        <div class="feature">
+                            <i>✓</i>
+                            <span>Comunidade ativa</span>
+                        </div>
+                        <div class="feature">
+                            <i>✓</i>
+                            <span>Experiência sem anúncios</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        document.getElementById("loginForm").addEventListener("submit", function(e){
-            e.preventDefault();
-        
-            const email = document.getElementById("loginEmail").value.trim();
-            const password = document.getElementById("loginPassword").value;
-    
-            console.log('Tentativa de login:', { email, password });
-    
-            // Pega todas as contas salvas
-            let users = [];
-            try {
-                users = JSON.parse(localStorage.getItem("users")) || [];
-                console.log('Usuários no sistema:', users);
-            } catch (error) {
-                console.error('Erro ao ler usuários:', error);
-                users = [];
+        // Verificar se o usuário já está logado
+        window.addEventListener('DOMContentLoaded', function() {
+            const currentUser = sessionStorage.getItem('currentUser');
+            if (currentUser) {
+                window.location.href = 'home.html';
             }
-    
-            // Verifica se existe uma conta
-            const user = users.find(user => 
-                user.email === email && user.password === password
-            );
-    
-            if(user){
-                console.log('Login bem-sucedido:', user);
-                // Salvar usuário na sessão
-                sessionStorage.setItem('currentUser', JSON.stringify(user));
-                alert("Login realizado com sucesso!");
-                window.location.href = "index.html";
-            } else {
-                console.log('Falha no login - usuário não encontrado');
-                alert("Email ou senha incorretos! Verifique ou crie uma conta.");
-            }
-        });
-    
-        // Debug ao carregar a página
-        window.addEventListener('load', function() {
-            console.log('=== PÁGINA DE LOGIN CARREGADA ===');
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            console.log('Usuários disponíveis para login:', users);
         });
 
+        // Alternar entre formulários de login e cadastro
+        document.getElementById('switch-to-register').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('login-form').classList.remove('active');
+            document.getElementById('register-form').classList.add('active');
+        });
+        
+        document.getElementById('switch-to-login').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('register-form').classList.remove('active');
+            document.getElementById('login-form').classList.add('active');
+        });
+        
+        // Alternar visibilidade da senha
+        function setupPasswordToggle(buttonId, inputId) {
+            const toggleButton = document.getElementById(buttonId);
+            const passwordInput = document.getElementById(inputId);
+            
+            toggleButton.addEventListener('click', function() {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleButton.textContent = '🙈';
+                } else {
+                    passwordInput.type = 'password';
+                    toggleButton.textContent = '👁️';
+                }
+            });
+        }
+        
+        setupPasswordToggle('toggle-login-password', 'login-password');
+        setupPasswordToggle('toggle-register-password', 'register-password');
+        setupPasswordToggle('toggle-register-confirm-password', 'register-confirm-password');
+        
+        // Criar elementos flutuantes
+        const floatingContainer = document.getElementById('floating-elements');
+        for (let i = 0; i < 15; i++) {
+            const element = document.createElement('div');
+            element.classList.add('floating-element');
+            
+            const size = Math.random() * 60 + 20;
+            const left = Math.random() * 100;
+            const animationDuration = Math.random() * 30 + 20;
+            const animationDelay = Math.random() * 5;
+            
+            element.style.width = `${size}px`;
+            element.style.height = `${size}px`;
+            element.style.left = `${left}%`;
+            element.style.animationDuration = `${animationDuration}s`;
+            element.style.animationDelay = `${animationDelay}s`;
+            
+            floatingContainer.appendChild(element);
+        }
+        
+        // Validação de formulários
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            // Buscar usuários do localStorage
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            
+            // Verificar se o usuário existe
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                // Salva o usuário na sessão
+                sessionStorage.setItem('currentUser', JSON.stringify({
+                    email: user.email,
+                    name: user.name
+                }));
+                
+                // Redireciona para a página home
+                window.location.href = 'home.html';
+            } else {
+                alert('E-mail ou senha incorretos!');
+            }
+        });
+        
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                alert('As senhas não coincidem!');
+                return;
+            }
+            
+            if (name && email && password) {
+                // Buscar usuários existentes
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                
+                // Verificar se o email já está cadastrado
+                const existingUser = users.find(u => u.email === email);
+                if (existingUser) {
+                    alert('Este e-mail já está cadastrado!');
+                    return;
+                }
+                
+                // Adicionar novo usuário
+                users.push({
+                    name: name,
+                    email: email,
+                    password: password
+                });
+                
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Salva o usuário na sessão
+                sessionStorage.setItem('currentUser', JSON.stringify({
+                    email: email,
+                    name: name
+                }));
+                
+                // Redireciona para a página home
+                window.location.href = 'home.html';
+            } else {
+                alert('Por favor, preencha todos os campos!');
+            }
+        });
     </script>
+</body>
+</html>
