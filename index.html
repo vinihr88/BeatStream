@@ -209,14 +209,16 @@ async function performSearch() {
 
 // Chamada à API do RapidAPI
 async function searchMusicAPI(query) {
-    const url = `https://${RAPID_API_HOST}/public/search/introspection?q=${encodeURIComponent(query)}`;
-    const options = {
-        method: 'GET',
-        headers: {
-            'X-RapidAPI-Key': RAPID_API_KEY,
-            'X-RapidAPI-Host': RAPID_API_HOST
-        }
-    };
+    const url = `/api/search?q=${encodeURIComponent(query)}`;
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Erro no proxy da MusicAPI");
+
+    const data = await response.json();
+    console.log("🎵 Dados da API via backend:", data);
+    return data;
+}
+
 
     const response = await fetch(url, options);
     if (!response.ok) throw new Error("Erro na API MusicAPI");
@@ -320,4 +322,5 @@ document.getElementById('searchInput').addEventListener('keypress', function(e){
     </script>
 </body>
 </html>
+
 
