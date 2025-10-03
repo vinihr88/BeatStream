@@ -1,0 +1,489 @@
+body {
+    margin: 0;
+    background-color: #121212;
+    color: #fff;
+    font-family: "Poppins", sans-serif;
+}
+
+.home-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar esquerda */
+.sidebar {
+    width: 250px;
+    background-color: #000;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.sidebar h2 {
+    color: #ffffff;
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.sidebar button, .sidebar a {
+    display: block;
+    width: 85%;
+    padding: 23px;
+    background: #1DB954;
+    border: none;
+    border-radius: 15px;
+    text-align: left;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: 0.3s;
+}
+
+.sidebar button:hover, .sidebar a:hover {
+    background: #1ed760;
+}
+
+/* Área principal */
+.main {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+/* Títulos de seção */
+.section-title {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: #ffffff;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 12px rgba(30,217,96,0.15), 0 1px 0 #000;
+    position: relative;
+    padding-left: 10px;
+}
+
+.section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 70%;
+    background: linear-gradient(180deg, #06562d 60%, #095b2a 100%);
+    border-radius: 3px;
+}
+
+/* Cards de músicas e playlists */
+.cards {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.card {
+    min-width: 150px;
+    background: #1c1c1c;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s;
+    position: relative;
+}
+
+.card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.card h4 {
+    padding: 10px;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+/* Artistas circulares */
+.artists {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.artist-card {
+    text-align: center;
+    min-width: 120px;
+    position: relative;
+}
+
+.artist-card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 8px;
+    transition: transform 0.3s;
+}
+
+.artist-card:hover img {
+    transform: scale(1.08);
+}
+
+/* Scroll customizado */
+.cards::-webkit-scrollbar, .artists::-webkit-scrollbar {
+    height: 6px;
+}
+
+.cards::-webkit-scrollbar-thumb, .artists::-webkit-scrollbar-thumb {
+    background: #1DB954;
+    border-radius: 3px;
+}
+
+/* Botões nos cards */
+.play-btn, .follow-btn, .edit-playlist, .delete-playlist {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: #1DB954;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    color: white;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.card:hover .play-btn, 
+.card:hover .follow-btn, 
+.card:hover .edit-playlist, 
+.card:hover .delete-playlist {
+    opacity: 1;
+}
+
+.follow-btn, .edit-playlist, .delete-playlist {
+    border-radius: 15px;
+    width: auto;
+    padding: 0 10px;
+    font-size: 0.8rem;
+}
+
+.delete-playlist {
+    background: #e74c3c;
+    bottom: 50px;
+}
+
+/* Barra de pesquisa */
+.search-container {
+    display: flex;
+    margin: 15px 0;
+}
+
+.search-container input {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 4px 0 0 4px;
+    background: #333;
+    color: white;
+}
+
+.search-container button {
+    padding: 8px 12px;
+    background: #1DB954;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    color: white;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .home-container {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+    }
+    
+    .sidebar button, .sidebar a {
+        width: auto;
+        padding: 15px;
+        margin-right: 10px;
+    }
+}
+/* Player de Música */
+.music-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #000;
+    padding: 15px;
+    display: none;
+    align-items: center;
+    gap: 20px;
+    border-top: 2px solid #1DB954;
+    z-index: 1000;
+}
+
+.player-visible {
+    display: flex;
+}
+
+.player-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.player-album-cover {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.player-details h4 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.player-details p {
+    margin: 0;
+    color: #bbb;
+    font-size: 0.9rem;
+}
+
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.control-btn {
+    background: #1DB954;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    color: white;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.control-btn:hover {
+    background: #1ed760;
+    transform: scale(1.1);
+}
+
+.progress-container {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 5px;
+    background: #333;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+}
+
+.progress {
+    height: 100%;
+    background: #1DB954;
+    border-radius: 5px;
+    width: 0%;
+}
+
+.time-display {
+    color: #bbb;
+    font-size: 0.8rem;
+    min-width: 80px;
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.volume-bar {
+    width: 80px;
+    height: 5px;
+    background: #333;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+}
+
+.volume-level {
+    height: 100%;
+    background: #1DB954;
+    border-radius: 5px;
+    width: 70%;
+}
+/* Estilos para a seção de Podcasts */
+.podcasts-section {
+    margin: 30px 0;
+}
+
+.podcast-category {
+    margin: 25px 0;
+}
+
+.podcast-category h4 {
+    color: #1DB954;
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    padding-left: 10px;
+    border-left: 3px solid #1DB954;
+}
+
+.podcast-card {
+    min-width: 200px;
+    background: #1c1c1c;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+}
+
+.podcast-card img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+}
+
+.podcast-card h5 {
+    padding: 10px;
+    font-size: 0.9rem;
+    margin: 0;
+    color: white;
+}
+
+.podcast-card p {
+    padding: 0 10px 10px 10px;
+    font-size: 0.8rem;
+    margin: 0;
+    color: #bbb;
+}
+
+.podcast-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(29, 185, 84, 0.2);
+}
+
+.podcast-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.podcast-modal-content {
+    background: #1c1c1c;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 2px solid #1DB954;
+}
+
+.episode-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin: 8px 0;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.episode-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.episode-info {
+    flex: 1;
+}
+
+.episode-title {
+    color: white;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.episode-meta {
+    color: #bbb;
+    font-size: 0.8rem;
+}
+
+.subscribe-btn {
+    background: #1DB954;
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.subscribe-btn.subscribed {
+    background: #666;
+}
+
+.podcast-header {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.podcast-header img {
+    width: 150px;
+    height: 150px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.podcast-info h3 {
+    color: white;
+    margin: 0 0 10px 0;
+}
+
+.podcast-info p {
+    color: #bbb;
+    margin: 5px 0;
+}

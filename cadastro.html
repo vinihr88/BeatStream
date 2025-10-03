@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta</title>
+    <link rel="stylesheet" href="teste.css">
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+            <div class="first-column">
+                <h2 class="title">Bem-vindo!</h2>
+                <p class="description">Já tem conta?</p>
+                <button class="btn" onclick="window.location.href='login.html'">Entrar</button>
+            </div>
+            <div class="second-column">
+                <h2 class="title">Criar Conta</h2>
+                <form class="form" id="registerForm">
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                    <input type="password" id="registerPassword" placeholder="Senha" required>
+                    
+                    <!-- Termos de serviço -->
+                    <div style="margin: 10px 0;">
+                        <label style="display: flex; align-items: center; color: rgba(255,255,255,0.8); font-size: 0.9rem;">
+                            <input type="checkbox" id="acceptTerms" style="margin-right: 8px;" required>
+                            Concordo com os <a href="#" style="color: #1DB954;" onclick="showTerms()">termos de serviço</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn">Registrar</button>
+                </form>
+                
+                <!-- Área de feedback -->
+                <div id="feedback" style="margin-top: 15px; color: #1DB954; font-size: 0.9rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTerms() {
+            alert('Termos de serviço: Ao criar uma conta, você concorda em respeitar as diretrizes da comunidade.');
+            return false;
+        }
+
+        // Sistema de registro SIMPLIFICADO e CORRIGIDO
+        document.getElementById("registerForm").addEventListener("submit", function(e){
+            e.preventDefault();
+            
+            const email = document.getElementById("registerEmail").value.trim();
+            const password = document.getElementById("registerPassword").value;
+            const acceptTerms = document.getElementById("acceptTerms").checked;
+            const feedback = document.getElementById("feedback");
+
+            // Reset feedback
+            feedback.textContent = '';
+            feedback.style.color = '#1DB954';
+
+            // Validações básicas
+            if (!email || !password) {
+                feedback.textContent = 'Preencha todos os campos!';
+                feedback.style.color = '#e74c3c';
+                return;
+            }
+
+            if (!acceptTerms) {
+                feedback.textContent = 'Aceite os termos de serviço!';
+                feedback.style.color = '#e74c3c';
+                return;
+            }
+
+            // Verifica se já existe localStorage
+            let users = [];
+            try {
+                const storedUsers = localStorage.getItem('users');
+                users = storedUsers ? JSON.parse(storedUsers) : [];
+                console.log('Usuários encontrados:', users);
+            } catch (error) {
+                console.error('Erro ao ler localStorage:', error);
+                users = [];
+            }
+
+            // Verifica se email já existe
+            if (users.some(user => user.email === email)) {
+                feedback.textContent = 'Este email já está cadastrado!';
+                feedback.style.color = '#e74c3c';
+                return;
+            }
+
+            // Cria novo usuário
+            const newUser = {
+                email: email,
+                password: password,
+                name: email.split('@')[0],
+                id: Date.now()
+            };
+
+            // Adiciona à lista
+            users.push(newUser);
+            
+            // Salva no localStorage
+            try {
+                localStorage.setItem('users', JSON.stringify(users));
+                console.log('Usuário salvo:', newUser);
+                console.log('Todos os usuários:', users);
+                
+                feedback.textContent = 'Conta criada com sucesso! Redirecionando...';
+                feedback.style.color = '#1DB954';
+                
+                // Redireciona após 2 segundos
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Erro ao salvar no localStorage:', error);
+                feedback.textContent = 'Erro ao criar conta. Tente novamente.';
+                feedback.style.color = '#e74c3c';
+            }
+        });
+
+        // Debug: Mostra usuários no console ao carregar a página
+        window.addEventListener('load', function() {
+            console.log('=== PÁGINA DE CADASTRO CARREGADA ===');
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            console.log('Usuários registrados:', users);
+            console.log('Número de usuários:', users.length);
+        });
+    </script>
+</body>
+</html>

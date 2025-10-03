@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="teste.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="content">
+            <div class="first-column">
+                <h2 class="title">Olá!</h2>
+                <p class="description">Não tem conta?</p>
+                <button class="btn" onclick="window.location.href='cadastro.html'">Criar Conta</button>
+            </div>
+            <div class="second-column">
+                <h2 class="title">Entrar</h2>
+                <form class="form" id="loginForm">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Senha" required>
+                    <button type="submit" class="btn">Entrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(e){
+            e.preventDefault();
+        
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value;
+    
+            console.log('Tentativa de login:', { email, password });
+    
+            // Pega todas as contas salvas
+            let users = [];
+            try {
+                users = JSON.parse(localStorage.getItem("users")) || [];
+                console.log('Usuários no sistema:', users);
+            } catch (error) {
+                console.error('Erro ao ler usuários:', error);
+                users = [];
+            }
+    
+            // Verifica se existe uma conta
+            const user = users.find(user => 
+                user.email === email && user.password === password
+            );
+    
+            if(user){
+                console.log('Login bem-sucedido:', user);
+                // Salvar usuário na sessão
+                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                alert("Login realizado com sucesso!");
+                window.location.href = "home.html";
+            } else {
+                console.log('Falha no login - usuário não encontrado');
+                alert("Email ou senha incorretos! Verifique ou crie uma conta.");
+            }
+        });
+    
+        // Debug ao carregar a página
+        window.addEventListener('load', function() {
+            console.log('=== PÁGINA DE LOGIN CARREGADA ===');
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            console.log('Usuários disponíveis para login:', users);
+        });
+    </script>

@@ -1,0 +1,194 @@
+/* ---------- RESET BÁSICO ---------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+/* ---------- BODY / CONTAINER ---------- */
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: linear-gradient(135deg,     #4d227e, #1f72d1);
+    background-size: 300% 300%;
+    animation: gradientBG 8s ease infinite;
+}
+
+/* Animação suave do gradiente de fundo */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 25px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 950px;
+    max-width: 95%;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ---------- LAYOUT ---------- */
+.content {
+    display: flex;
+    width: 100%;
+}
+
+.first-column, .second-column {
+    flex: 1;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Coluna esquerda com contraste maior */
+.first-column {
+    background: rgba(255, 255, 255, 0.15);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    color: white;
+    transition: 0.4s ease;
+}
+
+.first-column:hover {
+    transform: scale(1.03);
+}
+
+.second-column {
+    color: #fff;
+}
+
+/* ---------- TEXTOS ---------- */
+.title {
+    font-family: "Circular Std", "Poppins", "Arial", sans-serif;
+    font-size: 300%;
+    font-weight: 300;
+    margin-bottom: 15px;
+    font-family: "Montserrat", "Poppins", "Arial", sans-serif;
+    letter-spacing: 2px;
+}
+
+.description {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+/* ---------- BOTÕES ---------- */
+.btn {
+    background: linear-gradient(135deg, #afcc0e, #1272aa);
+    border: none;
+    color: #fff;
+    padding: 12px 40px;
+    margin-top: 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    box-shadow: 0px 8px 20px rgba(37, 117, 252, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+.btn:hover {
+    transform: scale(1.08) translateY(-3px);
+    box-shadow: 0px 12px 25px rgba(106, 17, 203, 0.4);
+}
+
+/* ---------- SOCIAL MEDIA ---------- */
+.social-media ul {
+    list-style: none;
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.social-media a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 18px;
+    border-radius: 20px;
+    transition: 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.social-media a:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.05);
+}
+
+/* ---------- FORMULÁRIO ---------- */
+.form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+}
+
+.form input {
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s ease;
+}
+
+.form input::placeholder {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.form input:focus {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+/* Botão do formulário */
+.form button {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.form button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 8px 20px rgba(37, 117, 252, 0.4);
+}
+
+/* ---------- RESPONSIVIDADE ---------- */
+@media (max-width: 768px) {
+    .content {
+        flex-direction: column;
+    }
+
+    .first-column, .second-column {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .container {
+        width: 90%;
+    }
+}

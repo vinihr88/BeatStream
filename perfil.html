@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-item h3 {
+            font-size: 2rem;
+            margin: 0;
+            color: #1DB954;
+        }
+        
+        .profile-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .profile-actions button {
+            padding: 10px 20px;
+            background: #1DB954;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="home-container">
+        <div class="sidebar">
+            <h2>Minha Biblioteca</h2>
+            <button onclick="window.location.href='home.html'">Voltar para Home</button>
+            <a href="login.html" onclick="return logout()">Sair</a>
+        </div>
+
+        <div class="main">
+            <div class="profile-header">
+                <h1 id="profileName">Usuário</h1>
+                <p id="profileEmail">email@exemplo.com</p>
+            </div>
+
+            <div class="profile-stats" id="userStats">
+                <!-- Estatísticas serão carregadas aqui -->
+            </div>
+
+            <div class="profile-actions">
+                <button onclick="editProfile()">Editar Perfil</button>
+                <button onclick="changePassword()">Alterar Senha</button>
+            </div>
+
+            <div>
+                <h3 class="section-title">Minhas Playlists</h3>
+                <div id="userPlaylists" class="cards">
+                    <!-- Playlists serão carregadas aqui -->
+                </div>
+            </div>
+
+            <div>
+                <h3 class="section-title">Reproduzidos Recentemente</h3>
+                <div id="recentlyPlayed" class="cards">
+                    <!-- Histórico será carregado aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // [O script que você já tinha vai aqui...]
+        // Carregar dados do usuário
+        window.addEventListener('DOMContentLoaded', function() {
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            
+            if (currentUser) {
+                document.getElementById('profileName').textContent = currentUser.name || currentUser.email.split('@')[0];
+                document.getElementById('profileEmail').textContent = currentUser.email;
+                
+                // Carregar estatísticas do usuário
+                loadUserStats();
+                loadUserPlaylists();
+                loadRecentlyPlayed();
+            } else {
+                alert('Usuário não encontrado. Faça login novamente.');
+                window.location.href = 'login.html';
+            }
+        });
+        
+        // [Resto do código do perfil...]
+    </script>
+</body>
+</html>
