@@ -55,7 +55,7 @@
                 // Salvar usuário na sessão
                 sessionStorage.setItem('currentUser', JSON.stringify(user));
                 alert("Login realizado com sucesso!");
-                window.location.href = "home.html";
+                window.location.href = "index.html";
             } else {
                 console.log('Falha no login - usuário não encontrado');
                 alert("Email ou senha incorretos! Verifique ou crie uma conta.");
@@ -68,4 +68,5 @@
             const users = JSON.parse(localStorage.getItem('users') || '[]');
             console.log('Usuários disponíveis para login:', users);
         });
+
     </script>
