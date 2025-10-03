@@ -257,16 +257,35 @@ async function performSearch() {
 }
 
 // Pesquisa na API Deezer
-async function searchDeezer(query) {
-    const response = await fetch(`${DEEZER_API.searchUrl}?q=${encodeURIComponent(query)}&limit=20`);
-    
-    if (!response.ok) {
-        throw new Error('Erro na API Deezer');
+// Substitua por sua chave e host do RapidAPI
+const RAPID_API_KEY = "f413ecdd94msh79bffab8fb1253cp1e669ajs2533082c3a2f";
+const RAPID_API_HOST = "musicapi13.p.rapidapi.com";
+
+async function searchMusicAPI(query) {
+    const url = `https://${RAPID_API_HOST}/public/search/introspection?q=${encodeURIComponent(query)}`;
+
+    const options = {
+        method: 'GET',
+        headers: {
+            'x-rapidapi-key': RAPID_API_KEY,
+            'x-rapidapi-host': RAPID_API_HOST
+        }
+    };
+
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error("Erro na API MusicAPI");
+        }
+        const data = await response.json();
+        console.log("Resultados:", data);
+        return data;
+    } catch (error) {
+        console.error("Erro na requisição:", error);
+        return [];
     }
-    
-    const data = await response.json();
-    return data.data;
 }
+
 
 // Exibe resultados da pesquisa
 function showSearchResults(tracks, query) {
@@ -648,5 +667,6 @@ if (!document.getElementById('deezer-styles')) {
 }   
     </script>
 </body>
+
 
 </html>
